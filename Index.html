@@ -1,0 +1,213 @@
+<!doctype html>
+<html>
+  <head>
+    <base target="_top">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body { font-family: Arial, sans-serif; margin: 16px; }
+      .toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+      select, input[type="search"] { padding: 8px; }
+      button { padding: 8px 12px; cursor: pointer; }
+      .list { border: 1px solid #ddd; border-radius: 8px; padding: 8px; max-width: 720px; }
+      .row { display: grid; grid-template-columns: 24px 1fr 220px; gap: 10px; align-items: center; padding: 8px; border-bottom: 1px solid #eee; }
+      .row:last-child { border-bottom: none; }
+      .muted { color: #666; font-size: 12px; margin-top: 8px; }
+      .hidden { display: none; }
+      .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .right { display:flex; gap:10px; align-items:center; justify-content:flex-end; }
+      .small { font-size: 12px; color:#555; }
+    </style>
+  </head>
+  <body>
+    <div class="toolbar">
+      <label class="small">Sheet:</label>
+      <select id="sheetSelect"></select>
+
+      <input id="q" type="search" placeholder="Search name..." />
+
+      <button id="resetBtn" class="hidden">Reset (unhide all)</button>
+
+      <label class="small" style="display:flex; align-items:center; gap:6px;">
+        <input type="checkbox" id="clearChoices" />
+        also clear choices (col C)
+      </label>
+    </div>
+
+    <div id="container" class="list">
+      <div class="row"><div></div><div class="name">Loading…</div><div></div></div>
+    </div>
+
+    <div class="muted">
+      Checkbox hides the row and saves TRUE to column B. Choice saves to column C. Options are read from D1:D4 of the selected sheet.
+    </div>
+
+    <script>
+      const sheetSelect = document.getElementById('sheetSelect');
+      const qEl = document.getElementById('q');
+      const resetBtn = document.getElementById('resetBtn');
+      const container = document.getElementById('container');
+      const clearChoicesEl = document.getElementById('clearChoices');
+
+      let currentSheet = '';
+      let options = [];
+      // Map by rowNum: { rowNum, name, checked, choice }
+      let rowsMap = new Map();
+
+      qEl.addEventListener('input', render);
+
+      sheetSelect.addEventListener('change', () => {
+        currentSheet = sheetSelect.value;
+        loadSheet(currentSheet);
+      });
+
+      resetBtn.addEventListener('click', () => {
+        if (!currentSheet) return;
+        const clearChoices = clearChoicesEl.checked;
+        google.script.run
+          .withSuccessHandler(() => loadSheet(currentSheet))
+          .withFailureHandler(showError)
+          .resetSheet(currentSheet, clearChoices);
+      });
+
+      function showError(err) {
+        container.innerHTML = '';
+        const r = document.createElement('div');
+        r.className = 'row';
+        const a = document.createElement('div');
+        const b = document.createElement('div');
+        b.className = 'name';
+        b.textContent = 'Error: ' + String(err && (err.message || err));
+        r.appendChild(a);
+        r.appendChild(b);
+        r.appendChild(document.createElement('div'));
+        container.appendChild(r);
+      }
+
+      function loadSheets() {
+        google.script.run
+          .withSuccessHandler(names => {
+            sheetSelect.innerHTML = '';
+            names.forEach((n, i) => {
+              const opt = document.createElement('option');
+              opt.value = n;
+              opt.textContent = n;
+              sheetSelect.appendChild(opt);
+              if (i === 0) currentSheet = n;
+            });
+            if (currentSheet) {
+              sheetSelect.value = currentSheet;
+              loadSheet(currentSheet);
+            } else {
+              container.innerHTML = '<div class="row"><div></div><div class="name">No sheets found.</div><div></div></div>';
+            }
+          })
+          .withFailureHandler(showError)
+          .listSheets();
+      }
+
+      function loadSheet(sheetName) {
+        container.innerHTML = '<div class="row"><div></div><div class="name">Loading…</div><div></div></div>';
+        qEl.value = '';
+
+        google.script.run
+          .withSuccessHandler(data => {
+            options = data.options || [];
+            rowsMap = new Map();
+            (data.rows || []).forEach(r => rowsMap.set(r.rowNum, r));
+            render();
+          })
+          .withFailureHandler(showError)
+          .getSheetData(sheetName);
+      }
+
+      function render() {
+        const q = qEl.value.trim().toLowerCase();
+
+        // visible = unchecked only (hidden if checked)
+        const visibleRows = Array.from(rowsMap.values()).filter(r => {
+          if (r.checked) return false;
+          if (!q) return true;
+          return r.name.toLowerCase().includes(q);
+        });
+
+        const anyChecked = Array.from(rowsMap.values()).some(r => r.checked);
+        resetBtn.classList.toggle('hidden', !anyChecked);
+
+        container.innerHTML = '';
+
+        if (visibleRows.length === 0) {
+          container.innerHTML = '<div class="row"><div></div><div class="name">No names to show.</div><div></div></div>';
+          return;
+        }
+
+        visibleRows.forEach(r => {
+          const row = document.createElement('div');
+          row.className = 'row';
+
+          // Checkbox
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.checked = false;
+
+          cb.addEventListener('change', (e) => {
+            const checked = e.target.checked === true;
+            // update local state
+            const cur = rowsMap.get(r.rowNum);
+            cur.checked = checked;
+
+            // persist, then rerender (it will disappear)
+            google.script.run
+              .withSuccessHandler(() => render())
+              .withFailureHandler(err => { showError(err); loadSheet(currentSheet); })
+              .updateRow(currentSheet, r.rowNum, checked, cur.choice || '');
+          });
+
+          // Name
+          const nameDiv = document.createElement('div');
+          nameDiv.className = 'name';
+          nameDiv.textContent = r.name;
+
+          // Choice dropdown
+          const right = document.createElement('div');
+          right.className = 'right';
+
+          const sel = document.createElement('select');
+          // allow empty
+          const emptyOpt = document.createElement('option');
+          emptyOpt.value = '';
+          emptyOpt.textContent = '(select)';
+          sel.appendChild(emptyOpt);
+
+          options.forEach(o => {
+            const opt = document.createElement('option');
+            opt.value = o;
+            opt.textContent = o;
+            sel.appendChild(opt);
+          });
+
+          sel.value = r.choice || '';
+
+          sel.addEventListener('change', (e) => {
+            const choice = e.target.value;
+            const cur = rowsMap.get(r.rowNum);
+            cur.choice = choice;
+
+            google.script.run
+              .withFailureHandler(err => { showError(err); loadSheet(currentSheet); })
+              .updateRow(currentSheet, r.rowNum, cur.checked === true, choice);
+          });
+
+          right.appendChild(sel);
+
+          row.appendChild(cb);
+          row.appendChild(nameDiv);
+          row.appendChild(right);
+
+          container.appendChild(row);
+        });
+      }
+
+      loadSheets();
+    </script>
+  </body>
+</html>
