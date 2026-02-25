@@ -4,18 +4,34 @@
     <base target="_top">
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
-      body { font-family: Arial, sans-serif; margin: 16px; }
+      *, *::before, *::after { box-sizing: border-box; }
+      body { font-family: Arial, sans-serif; margin: 16px; -webkit-text-size-adjust: 100%; }
       .toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
-      select, input[type="search"] { padding: 8px; }
-      button { padding: 8px 12px; cursor: pointer; }
+      select, input[type="search"] { padding: 8px; min-height: 36px; }
+      button { padding: 8px 12px; cursor: pointer; min-height: 36px; }
       .list { border: 1px solid #ddd; border-radius: 8px; padding: 8px; max-width: 720px; }
-      .row { display: grid; grid-template-columns: 24px 1fr 220px; gap: 10px; align-items: center; padding: 8px; border-bottom: 1px solid #eee; }
+      .row { display: grid; grid-template-columns: 24px 1fr 220px; gap: 10px; align-items: center; padding: 8px; border-bottom: 1px solid #eee; min-height: 44px; }
       .row:last-child { border-bottom: none; }
       .muted { color: #666; font-size: 12px; margin-top: 8px; }
       .hidden { display: none; }
       .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-      .right { display:flex; gap:10px; align-items:center; justify-content:flex-end; }
+      .right { display:flex; gap:10px; align-items:center; justify-content:flex-end; min-width: 0; }
+      .right select { min-width: 0; max-width: 100%; }
       .small { font-size: 12px; color:#555; }
+
+      @media (max-width: 640px) {
+        body { margin: 12px; }
+        .toolbar { gap: 10px; }
+        .toolbar label.small { width: 100%; }
+        select, input[type="search"] { flex: 1 1 100%; min-width: 0; }
+        #sheetSelect { flex: 1 1 auto; min-width: 120px; }
+        #q { flex: 1 1 100%; }
+        .list { max-width: none; padding: 6px; }
+        .row { grid-template-columns: 36px 1fr; grid-template-rows: auto auto; gap: 4px 10px; padding: 10px 8px; align-items: center; min-height: 0; }
+        .row > .name { grid-column: 2; grid-row: 1; white-space: normal; word-break: break-word; }
+        .row > .right { grid-column: 1 / -1; grid-row: 2; justify-content: flex-start; }
+        .row > input[type="checkbox"] { grid-column: 1; grid-row: 1; width: 20px; height: 20px; margin: 0; }
+      }
     </style>
   </head>
   <body>
