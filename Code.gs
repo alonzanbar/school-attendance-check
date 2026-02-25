@@ -1,6 +1,5 @@
 const START_ROW = 2;   // names start at row 2
 const COL_NAME = 1;    // A
-const COL_CHECK = 2;   // B
 const COL_CHOICE = 3;  // C
 const OPTIONS_RANGE = 'D1:D4';
 
@@ -37,10 +36,9 @@ function getSheetData(sheetName) {
     const name = (data[i][0] ?? '').toString().trim();
     if (!name) continue;
 
-    const checked = data[i][1] === true; // Column B
     const choice = (data[i][2] ?? '').toString();
 
-    rows.push({ rowNum, name, checked, choice });
+    rows.push({ rowNum, name, choice });
   }
 
   return { options, rows };
@@ -48,35 +46,27 @@ function getSheetData(sheetName) {
 
 /**
  * Persist a single row's state.
- * checked -> column B (TRUE/FALSE)
- * choice  -> column C (string)
+ * choice -> column C (string)
  */
-function updateRow(sheetName, rowNum, checked, choice) {
+function updateRow(sheetName, rowNum, choice) {
   const sh = SpreadsheetApp.getActive().getSheetByName(sheetName);
   if (!sh) throw new Error(`Sheet not found: ${sheetName}`);
 
-  sh.getRange(rowNum, COL_CHECK).setValue(!!checked);
   sh.getRange(rowNum, COL_CHOICE).setValue(choice ?? '');
   return true;
 }
 
 /**
- * Reset: unhide all by clearing Column B.
- * If you also want to clear Column C, set clearChoices=true from the UI.
+ * Reset by clearing all choices in Column C.
  */
-function resetSheet(sheetName, clearChoices) {
+function resetSheet(sheetName) {
   const sh = SpreadsheetApp.getActive().getSheetByName(sheetName);
   if (!sh) throw new Error(`Sheet not found: ${sheetName}`);
 
   const lastRow = sh.getLastRow();
   if (lastRow < START_ROW) return true;
 
-  // Clear Column B (checkbox)
-  sh.getRange(START_ROW, COL_CHECK, lastRow - START_ROW + 1, 1).clearContent();
-
-  // Optional: clear Column C (choice)
-  if (clearChoices) {
-    sh.getRange(START_ROW, COL_CHOICE, lastRow - START_ROW + 1, 1).clearContent();
-  }
+  // Clear Column C (choice)
+  sh.getRange(START_ROW, COL_CHOICE, lastRow - START_ROW + 1, 1).clearContent();
   return true;
 }

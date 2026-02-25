@@ -1,60 +1,147 @@
 <!doctype html>
-<html>
+<html lang="he" dir="rtl">
   <head>
     <base target="_top">
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <style>
       *, *::before, *::after { box-sizing: border-box; }
-      body { font-family: Arial, sans-serif; margin: 16px; -webkit-text-size-adjust: 100%; }
-      .toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
-      select, input[type="search"] { padding: 8px; min-height: 36px; }
-      button { padding: 8px 12px; cursor: pointer; min-height: 36px; }
-      .list { border: 1px solid #ddd; border-radius: 8px; padding: 8px; max-width: 720px; }
-      .row { display: grid; grid-template-columns: 24px 1fr 220px; gap: 10px; align-items: center; padding: 8px; border-bottom: 1px solid #eee; min-height: 44px; }
-      .row:last-child { border-bottom: none; }
-      .muted { color: #666; font-size: 12px; margin-top: 8px; }
-      .hidden { display: none; }
-      .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-      .right { display:flex; gap:10px; align-items:center; justify-content:flex-end; min-width: 0; }
-      .right select { min-width: 0; max-width: 100%; }
-      .small { font-size: 12px; color:#555; }
-
-      @media (max-width: 640px) {
-        body { margin: 12px; }
-        .toolbar { gap: 10px; }
-        .toolbar label.small { width: 100%; }
-        select, input[type="search"] { flex: 1 1 100%; min-width: 0; }
-        #sheetSelect { flex: 1 1 auto; min-width: 120px; }
-        #q { flex: 1 1 100%; }
-        .list { max-width: none; padding: 6px; }
-        .row { grid-template-columns: 36px 1fr; grid-template-rows: auto auto; gap: 4px 10px; padding: 10px 8px; align-items: center; min-height: 0; }
-        .row > .name { grid-column: 2; grid-row: 1; white-space: normal; word-break: break-word; }
-        .row > .right { grid-column: 1 / -1; grid-row: 2; justify-content: flex-start; }
-        .row > input[type="checkbox"] { grid-column: 1; grid-row: 1; width: 20px; height: 20px; margin: 0; }
+      html { -webkit-tap-highlight-color: transparent; font-size: 22px; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        margin: 0;
+        padding: max(16px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+        font-size: 1rem;
+        line-height: 1.45;
+        min-height: 100vh;
+        -webkit-text-size-adjust: 100%;
+        color: #1d1d1f;
+        direction: rtl;
+        text-align: right;
       }
+      .toolbar {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+        margin-bottom: 22px;
+      }
+      .toolbar .small { font-size: 0.85rem; color: #555; font-weight: 600; }
+      .toolbar > label:first-of-type { display: block; margin-bottom: 2px; }
+      select, input[type="search"] {
+        width: 100%;
+        min-height: 64px;
+        padding: 14px 16px;
+        font-size: 1rem;
+        border-radius: 12px;
+        border: 1px solid #d1d1d6;
+        -webkit-appearance: none;
+        appearance: none;
+        background: #fff;
+      }
+      input[type="search"]::placeholder { font-size: 1rem; color: #8e8e93; }
+      #sheetSelect {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: left 16px center;
+        padding-left: 40px;
+      }
+      button {
+        min-height: 60px;
+        padding: 14px 16px;
+        font-size: 0.95rem;
+        border-radius: 12px;
+        border: none;
+        background: #007AFF;
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+        -webkit-appearance: none;
+        appearance: none;
+      }
+      button:disabled { opacity: 0.75; cursor: default; }
+      .list {
+        padding: 0;
+        border-radius: 14px;
+        border: 1px solid #e5e5ea;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        width: 100%;
+        background: #fff;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(220px, 62%);
+        gap: 12px;
+        align-items: center;
+        padding: 16px;
+        border-bottom: 1px solid #e5e5ea;
+        background: #fff;
+        min-height: 88px;
+      }
+      .row:last-child { border-bottom: none; }
+      .row > .name {
+        white-space: normal;
+        word-break: break-word;
+        font-size: 1rem;
+        line-height: 1.35;
+        font-weight: 600;
+      }
+      .row > .right {
+        justify-content: stretch;
+        width: 100%;
+      }
+      .row > .right select {
+        width: 100%;
+        min-height: 60px;
+        padding: 14px 16px;
+        font-size: 0.98rem;
+        border-radius: 10px;
+        border: 1px solid #d1d1d6;
+        -webkit-appearance: none;
+        appearance: none;
+        background: #f2f2f7;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: left 14px center;
+        padding-left: 40px;
+      }
+      .muted { color: #6e6e73; font-size: 0.78rem; margin-top: 14px; line-height: 1.4; padding: 0 2px; }
+      .hidden { display: none; }
+      .name { overflow: hidden; text-overflow: ellipsis; }
+      .right { display: flex; gap: 10px; align-items: center; min-width: 0; }
+      .right select { min-width: 0; max-width: 100%; }
+      .small { font-size: 12px; color: #555; }
+      /* Force native-looking large tap targets on mobile */
+      @media (pointer: coarse) {
+        select, input[type="search"], button { min-height: 64px; }
+        .row > .right select { min-height: 60px; font-size: 0.98rem; padding: 14px 16px; }
+      }
+
+      @media (max-width: 620px) {
+        .row {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+      }
+
     </style>
   </head>
   <body>
     <div class="toolbar">
-      <label class="small">Sheet:</label>
+      <label class="small">גיליון:</label>
       <select id="sheetSelect"></select>
 
-      <input id="q" type="search" placeholder="Search name..." />
+      <input id="q" type="search" placeholder="חיפוש שם..." />
 
-      <button id="resetBtn" class="hidden">Reset (unhide all)</button>
-
-      <label class="small" style="display:flex; align-items:center; gap:6px;">
-        <input type="checkbox" id="clearChoices" />
-        also clear choices (col C)
-      </label>
+      <button id="resetBtn" class="hidden">איפוס בחירות</button>
     </div>
 
     <div id="container" class="list">
-      <div class="row"><div></div><div class="name">Loading…</div><div></div></div>
+      <div class="row"><div class="name">טוען...</div><div class="right"></div></div>
     </div>
 
     <div class="muted">
-      Checkbox hides the row and saves TRUE to column B. Choice saves to column C. Options are read from D1:D4 of the selected sheet.
+      שם מוצג כאשר עמודה C ריקה או שווה ל-"לא נוכח עדיין". כל ערך אחר מסתיר את השם. כפתור האיפוס מנקה את כל הערכים בעמודה C.
     </div>
 
     <script>
@@ -62,11 +149,13 @@
       const qEl = document.getElementById('q');
       const resetBtn = document.getElementById('resetBtn');
       const container = document.getElementById('container');
-      const clearChoicesEl = document.getElementById('clearChoices');
+      const VISIBLE_CHOICE = 'לא נוכח עדיין';
+      const RESET_TEXT = 'איפוס בחירות';
+      const RESETTING_TEXT = 'מאפס...';
 
       let currentSheet = '';
       let options = [];
-      // Map by rowNum: { rowNum, name, checked, choice }
+      // Map by rowNum: { rowNum, name, choice }
       let rowsMap = new Map();
 
       qEl.addEventListener('input', render);
@@ -78,12 +167,27 @@
 
       resetBtn.addEventListener('click', () => {
         if (!currentSheet) return;
-        const clearChoices = clearChoicesEl.checked;
+        resetBtn.disabled = true;
+        resetBtn.textContent = RESETTING_TEXT;
+        container.innerHTML = '<div class="row"><div class="name">מאפס נתונים...</div><div class="right"></div></div>';
         google.script.run
-          .withSuccessHandler(() => loadSheet(currentSheet))
-          .withFailureHandler(showError)
-          .resetSheet(currentSheet, clearChoices);
+          .withSuccessHandler(() => {
+            resetBtn.disabled = false;
+            resetBtn.textContent = RESET_TEXT;
+            loadSheet(currentSheet);
+          })
+          .withFailureHandler(err => {
+            resetBtn.disabled = false;
+            resetBtn.textContent = RESET_TEXT;
+            showError(err);
+          })
+          .resetSheet(currentSheet);
       });
+
+      function isVisibleByChoice(choice) {
+        const v = String(choice ?? '').trim();
+        return v === '' || v === VISIBLE_CHOICE;
+      }
 
       function showError(err) {
         container.innerHTML = '';
@@ -92,10 +196,9 @@
         const a = document.createElement('div');
         const b = document.createElement('div');
         b.className = 'name';
-        b.textContent = 'Error: ' + String(err && (err.message || err));
-        r.appendChild(a);
+        b.textContent = 'שגיאה: ' + String(err && (err.message || err));
         r.appendChild(b);
-        r.appendChild(document.createElement('div'));
+        r.appendChild(a);
         container.appendChild(r);
       }
 
@@ -114,7 +217,7 @@
               sheetSelect.value = currentSheet;
               loadSheet(currentSheet);
             } else {
-              container.innerHTML = '<div class="row"><div></div><div class="name">No sheets found.</div><div></div></div>';
+              container.innerHTML = '<div class="row"><div class="name">לא נמצאו גיליונות.</div><div class="right"></div></div>';
             }
           })
           .withFailureHandler(showError)
@@ -122,7 +225,7 @@
       }
 
       function loadSheet(sheetName) {
-        container.innerHTML = '<div class="row"><div></div><div class="name">Loading…</div><div></div></div>';
+        container.innerHTML = '<div class="row"><div class="name">טוען...</div><div class="right"></div></div>';
         qEl.value = '';
 
         google.script.run
@@ -139,44 +242,26 @@
       function render() {
         const q = qEl.value.trim().toLowerCase();
 
-        // visible = unchecked only (hidden if checked)
+        // Visible when no choice is selected or when choice is "לא נוכח עדיין"
         const visibleRows = Array.from(rowsMap.values()).filter(r => {
-          if (r.checked) return false;
+          if (!isVisibleByChoice(r.choice)) return false;
           if (!q) return true;
           return r.name.toLowerCase().includes(q);
         });
 
-        const anyChecked = Array.from(rowsMap.values()).some(r => r.checked);
-        resetBtn.classList.toggle('hidden', !anyChecked);
+        const anyHiddenByChoice = Array.from(rowsMap.values()).some(r => !isVisibleByChoice(r.choice));
+        resetBtn.classList.toggle('hidden', !anyHiddenByChoice);
 
         container.innerHTML = '';
 
         if (visibleRows.length === 0) {
-          container.innerHTML = '<div class="row"><div></div><div class="name">No names to show.</div><div></div></div>';
+          container.innerHTML = '<div class="row"><div class="name">אין שמות להצגה.</div><div class="right"></div></div>';
           return;
         }
 
         visibleRows.forEach(r => {
           const row = document.createElement('div');
           row.className = 'row';
-
-          // Checkbox
-          const cb = document.createElement('input');
-          cb.type = 'checkbox';
-          cb.checked = false;
-
-          cb.addEventListener('change', (e) => {
-            const checked = e.target.checked === true;
-            // update local state
-            const cur = rowsMap.get(r.rowNum);
-            cur.checked = checked;
-
-            // persist, then rerender (it will disappear)
-            google.script.run
-              .withSuccessHandler(() => render())
-              .withFailureHandler(err => { showError(err); loadSheet(currentSheet); })
-              .updateRow(currentSheet, r.rowNum, checked, cur.choice || '');
-          });
 
           // Name
           const nameDiv = document.createElement('div');
@@ -191,7 +276,7 @@
           // allow empty
           const emptyOpt = document.createElement('option');
           emptyOpt.value = '';
-          emptyOpt.textContent = '(select)';
+          emptyOpt.textContent = 'בחרו סטטוס';
           sel.appendChild(emptyOpt);
 
           options.forEach(o => {
@@ -209,13 +294,13 @@
             cur.choice = choice;
 
             google.script.run
+              .withSuccessHandler(() => render())
               .withFailureHandler(err => { showError(err); loadSheet(currentSheet); })
-              .updateRow(currentSheet, r.rowNum, cur.checked === true, choice);
+              .updateRow(currentSheet, r.rowNum, choice);
           });
 
           right.appendChild(sel);
 
-          row.appendChild(cb);
           row.appendChild(nameDiv);
           row.appendChild(right);
 
